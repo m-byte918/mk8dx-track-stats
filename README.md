@@ -1,6 +1,8 @@
 # mk8dx-track-stats
 Collects and formats some statistics based on MK8DX track data collected by Toad Bot
 
+![sample output](https://raw.githubusercontent.com/m-byte918/mk8dx-track-stats/main/sample.png)
+
 ## Dependencies
 * Node.JS v17.4.0 or later
 * [DiscordChatExporter](https://github.com/Tyrrrz/DiscordChatExporter)
