@@ -69,11 +69,15 @@ const input = fs.createReadStream(process.argv[2]);
 
         trackObj.avgScore = trackObj.scores.reduce((partialSum, a) => partialSum + a, 0) / trackObj.timesPlayed;
 
-        trackObj.avgWRace = wRaces.reduce((partialSum, a) => partialSum + a, 0) / wRaces.length;
+        trackObj.avgWRace = wRaces.reduce((partialSum, a) => partialSum + a, 0) / wRaces.length || 0;
         trackObj.avgLRace = lRaces.reduce((partialSum, a) => partialSum + a, 0) / lRaces.length || 0;
 
         trackObj.bestRace = Math.max(...wRaces);
         trackObj.worstRace = Math.min(...lRaces);
+
+        // Prevent from infinite result if there are no winning/losing races
+        trackObj.bestRace = isFinite(trackObj.bestRace) ? trackObj.bestRace : 0;
+        trackObj.worstRace = isFinite(trackObj.worstRace) ? trackObj.worstRace : 0;
 
         trackObjs.push({ name: trackName, data: trackObj });
     }
