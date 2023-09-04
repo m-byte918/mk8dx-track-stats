@@ -11,7 +11,9 @@ Collects and formats some statistics based on MK8DX track data collected by Toad
 ## How to use
 1. Use DiscordChatExporter to export your team's toad bot channel to a text document named `data.txt` using the following search criteria: `from:Toad#7861 track`
 2. Save that text document to the same directory as this file
-3. Open a terminal in the same directory and run the following command `node compile.js data.txt`
+3. Open a terminal in the same directory and run the following commands:
+    * `npm install`
+    * `node compile.js data.txt`
 
 ## Note
 * Output is limited by minimum times played (default is 5 races), adjust the `timesPlayedLimit` variable in `compile.js` to see more or less tracks on the table.
