@@ -1,11 +1,12 @@
 const readLine = require("readline");
 const fs = require("fs");
-const stream = require('stream');
+const stream = require("stream");
+const { Table } = require("console-table-printer");
 
 // DiscordChatExporter search criteria: "from:Toad#7861 track"
 
-const lines = [];
 const timesPlayedLimit = 5;
+const columnAlignment = "left";
 
 // Read collected toad bot data
 function readLines({ input }) {
@@ -22,6 +23,8 @@ function readLines({ input }) {
 const input = fs.createReadStream(process.argv[2]);
 
 (async () => {
+    const lines = [];
+
     // Read the data
     for await (const line of readLines({ input })) {
         lines.push(line);
@@ -41,6 +44,7 @@ const input = fs.createReadStream(process.argv[2]);
         if (!trackData[trackName]) {
             // Create object if it does not exist
             trackData[trackName] = {
+                //spots: [], // 2D array
                 scores: [],
                 timesPlayed: 0,
                 avgScore: 0,
@@ -52,6 +56,9 @@ const input = fs.createReadStream(process.argv[2]);
             }
         }
         trackData[trackName].scores.push(difference);
+        /*if (difference > 0) {
+            trackData[trackName].spots.push(lines[i - 7].match(/\d+/g));
+        }*/
         ++totalRaces;
     }
 
@@ -79,27 +86,61 @@ const input = fs.createReadStream(process.argv[2]);
         trackObj.bestRace = isFinite(trackObj.bestRace) ? trackObj.bestRace : 0;
         trackObj.worstRace = isFinite(trackObj.worstRace) ? trackObj.worstRace : 0;
 
+        /*const spotSums = {};
+        for (const raceSpots of trackObj.spots) {
+            for (const spot of raceSpots) {
+                if (!spotSums[spot]) {
+                    spotSums[spot] = 0
+                }
+                ++spotSums[spot];
+            }
+        }
+        for (const spot of Object.keys(spotSums)) {
+            spotSums[spot] /= wRaces.length;
+        }
+        console.log(spotSums);
+        console.log(trackObj.spots);*/
+
         trackObjs.push({ name: trackName, data: trackObj });
     }
     trackObjs.sort((t1, t2) => t2.data.winRate - t1.data.winRate);
 
+    // Format columns
+    const plays = `Plays (>=${timesPlayedLimit})`;
+    const table = new Table({
+        columns: [
+            { name: "Rank", alignment: columnAlignment },
+            { name: "Track", alignment: columnAlignment },
+            { name: "Win%", alignment: columnAlignment },
+            { name: "Avg. Score", alignment: columnAlignment },
+            { name: "Avg. Win Score", alignment: columnAlignment },
+            { name: "Avg. Lose Score", alignment: columnAlignment },
+            { name: "Best Race", alignment: columnAlignment },
+            { name: "Worst Race", alignment: columnAlignment },
+            //{ name: "Best Starting Spots", alignment: columnAlignment },
+            { name: plays, alignment: columnAlignment },
+        ]
+    });
+
     // Print out the data
-    const tableData = [];
     console.log(`Total races scraped: ${totalRaces}, Total wars scraped: ${Math.floor(totalRaces / 12)}`);
-    for (const track of trackObjs) {
+    for (let i = 0, rank = 0; i < trackObjs.length; ++i) {
+        const track = trackObjs[i];
         if (track.data.timesPlayed < timesPlayedLimit)
             continue;
         let row = {
-            "Track name": track.name,
-            "Win rate": Math.round(track.data.winRate) + 0,
-            "Average score": Math.round(track.data.avgScore) + 0,
-            "Avg. Winning Race": Math.round(track.data.avgWRace),
-            "Avg. Losing Race": Math.round(track.data.avgLRace),
-            "Best race": Math.round(track.data.bestRace),
-            "Worst race": Math.round(track.data.worstRace),
+            "Rank": ++rank,
+            "Track": track.name,
+            "Win%": Math.round(track.data.winRate) + 0,
+            "Avg. Score": Math.round(track.data.avgScore) + 0,
+            "Avg. Win Score": Math.round(track.data.avgWRace),
+            "Avg. Lose Score": Math.round(track.data.avgLRace),
+            "Best Race": Math.round(track.data.bestRace),
+            "Worst Race": Math.round(track.data.worstRace),
+            //"Best Starting Spots": "uwu",
         }
-        row[`Times played (>=${timesPlayedLimit})`] = track.data.timesPlayed;
-        tableData.push(row);
+        row[plays] = track.data.timesPlayed;
+        table.addRow(row, { color: (rank % 2 == 0) ? "white" : "cyan" }); // Alternate colors 
     }
-    console.table(tableData);
+    table.printTable();
 })();
